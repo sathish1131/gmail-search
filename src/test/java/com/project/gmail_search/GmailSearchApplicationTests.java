@@ -1,4 +1,4 @@
-package com.sathish.gmail_search;
+package com.project.gmail_search;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
