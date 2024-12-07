@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Gmail Search</title>
+	<style type="text/css">
+		body {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100vh;
+			background-color: #f4f4f9;
+			font-family: Arial, sans-serif;
+		}
+		.search-container {
+			text-align: center;
+			padding: 40px;
+			background-color: #fff;
+			border-radius: 12px;
+			box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+		}
+		input {
+			padding: 15px;
+			width: 300px;
+			font-size: 18px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+		}
+		button {
+			padding: 15px 20px;
+			font-weight: bold;
+			background-color: #007BFF;
+			color: #fff;
+			border: none;
+			border-radius: 5px;
+			font-size: 18px;
+			cursor: pointer;
+			margin-top: 10px;
+		}
+		button:hover {
+			background-color: #0056b3;
+		}
+		button:active {
+			transform: scale(0.95);
+		}
+		h2 {
+			font-weight: bold;
+			color: #333;
+		}
+	</style>
+</head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<body>
+	
+	<div class="search-container">
+		<h2>Search Gmail Alias</h2>
+		<form id="search-form" onsubmit="return false;">
+		    <input type="email" id="search-input" placeholder="Enter Gmail Alias..." required>
+		    <br>
+		    <button class="btn btn-default" type="submit" id="search-btn">Search</button>
+	   	</form>
+	    <div id="mail-search-result" style="margin-top: 20px; color: #666;"></div>
+	</div>
+	
+</body>
+<script type="text/javascript">
+	$(document).ready(function(){
+		const searchBox = $('#search-input');
+		const mailResult = $("#mail-search-result");
+		searchBox.val("");
+
+		$('#search-form').on('submit', function(event){
+			event.preventDefault();
+
+			const alias = searchBox.val().trim();
+			mailResult.html('<p>Loading...</p>');
+			$.ajax({
+				url: `/gmail/search?alias=${alias}`,
+				type: 'GET',
+				success: function(response){
+					mailResult.html('');
+					if(response && response.length > 0){
+						const ul = $('<ul></ul>');
+						response.forEach(email => {
+							ul.append(`<li>${email}</li>`);
+						});
+						mailResult.append(ul);
+					}else{
+						mailResult.html(`<p>No emails found for the entered alias...</p>`);
+					}
+				},
+				error: function(err){
+					console.error(err);
+					mailResult.html(`<p>Something went wrong. Please try again later...</p>`);
+				}
+			})
+		}) 
+	})
+</script>
+</html>
