@@ -1,5 +1,8 @@
 package com.project.gmail_search.service;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -14,17 +17,27 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ListMessagesResponse;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import java.security.GeneralSecurityException;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import java.util.Properties;
+
+import org.json.JSONObject;
+
+
 
 @Service
 public class EmailService{
@@ -58,7 +71,18 @@ public class EmailService{
   private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
       throws IOException {
     // Load client secrets.
-    InputStream in = EmailService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+    // Load application.properties file
+    FileInputStream input = new FileInputStream("src/main/resources/application.properties");
+    Properties properties = new Properties();
+    properties.load(input);
+    //Update the credentials.json file
+    String content = new String(Files.readAllBytes(Paths.get("src/main/resources/credentials.json")));
+    JSONObject credentials = new JSONObject(content);
+    JSONObject installed = credentials.getJSONObject("installed");
+    installed.put("client_id", properties.getProperty("id"));
+    installed.put("client_secret", properties.getProperty("sec"));
+    // Load client secrets.
+    InputStream in = new ByteArrayInputStream(credentials.toString(4).getBytes());
     if (in == null) {
       throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
     }

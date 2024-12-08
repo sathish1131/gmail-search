@@ -14,6 +14,7 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListLabelsResponse;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.FileInputStream;
@@ -21,13 +22,16 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import java.security.GeneralSecurityException;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+
 import org.json.JSONObject;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 
 
@@ -73,7 +77,7 @@ public class TokenGenerator {
     installed.put("client_id", properties.getProperty("id"));
     installed.put("client_secret", properties.getProperty("sec"));
     // Load client secrets.
-    InputStream in = new ByteArrayInputStream(credentials.toString(4).getBytes());//TokenGenerator.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+    InputStream in = new ByteArrayInputStream(credentials.toString(4).getBytes());
     if (in == null) {
       throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
     }
