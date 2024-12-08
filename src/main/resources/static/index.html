@@ -78,12 +78,15 @@
 			$.ajax({
 				url: `/gmail/search?alias=${alias}`,
 				type: 'GET',
+				dataType: 'JSON',
 				success: function(response){
 					mailResult.html('');
+					console.log(JSON.parse(JSON.stringify(response)));
 					if(response && response.length > 0){
+						
 						const ul = $('<ul></ul>');
 						response.forEach(email => {
-							ul.append(`<li>${email}</li>`);
+							ul.append(`<li>${email.subject}</li>`);
 						});
 						mailResult.append(ul);
 					}else{

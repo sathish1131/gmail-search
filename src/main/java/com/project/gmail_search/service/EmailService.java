@@ -17,6 +17,8 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ListMessagesResponse;
+import com.google.api.services.gmail.model.MessagePartHeader;
+import com.google.api.services.gmail.model.MessagePart;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,6 +37,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 
@@ -102,19 +108,39 @@ public class EmailService{
     return credential;
   }
 
-  public static List<Message> searchEmails(String query) throws IOException, GeneralSecurityException {
+  public static JSONArray searchEmails(String query) throws IOException, GeneralSecurityException {
   	Gmail service = initialiseGmailService();
   	String user = "me";
   	ListMessagesResponse messageResponse = service.users().messages().list(user).setQ(query).execute();
-  	List<Message> messages = new ArrayList<>();
-  	if(messageResponse.getMessages() != null){
-  		for(Message msg : messageResponse.getMessages()){
-  			Message mailDetails = service.users().messages().get("me", msg.getId()).execute();
-        System.out.println(mailDetails);
-  			messages.add(mailDetails);
-  		}
-  	}
-  	return messages;
+  	List<Message> messages = messageResponse.getMessages();
+    JSONArray mails = new JSONArray();
+    if(messages != null){
+      for(Message message : messages){
+        Message fullMessage = service.users().messages().get(user, message.getId()).setFormat("full").execute();
+        String subject = "No subject";
+        for(MessagePartHeader header : fullMessage.getPayload().getHeaders()){
+          if("Subject".equalsIgnoreCase(header.getName())){
+            subject = header.getValue();
+            break;
+          }
+        }
+        String body = "No content available";
+        if(fullMessage.getPayload().getParts() != null){
+          for(MessagePart part : fullMessage.getPayload().getParts()){
+            if("text/plain".equals(part.getMimeType())){
+              body = new String(part.getBody().decodeData());
+              break;
+            }
+          }
+        }
+        JSONObject mailDetails = new JSONObject();
+        mailDetails.put("id", message.getId());
+        mailDetails.put("subject", subject);
+        mailDetails.put("body", body);
+        mails.put(mailDetails);
+      }
+    }
+    return mails;
   }
 
   private static Gmail initialiseGmailService() throws IOException,GeneralSecurityException {
@@ -124,5 +150,6 @@ public class EmailService{
         .build();
     return service;
   }
+  
 
 }

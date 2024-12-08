@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.List;
+import org.json.JSONArray;
+
 
 @RestController
 @RequestMapping("/gmail/")
@@ -17,7 +18,7 @@ public class EmailController{
 	private EmailService emailService;
 
 	@GetMapping("search")
-	public List<Message> searchEmails(@RequestParam String alias) throws IOException, GeneralSecurityException {
+	public JSONArray searchEmails(@RequestParam String alias) throws IOException, GeneralSecurityException {
 		return emailService.searchEmails(alias);
 	}
 
