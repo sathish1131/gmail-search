@@ -1,4 +1,4 @@
-package com.project.gmail_search.service;
+package com.project.gmail_search.utils;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -12,22 +12,27 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
-import com.google.api.services.gmail.model.Message;
-import com.google.api.services.gmail.model.ListMessagesResponse;
+import com.google.api.services.gmail.model.Label;
+import com.google.api.services.gmail.model.ListLabelsResponse;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.File;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
-import java.util.ArrayList;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import java.util.Properties;
+import org.json.JSONObject;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
-@Service
-public class EmailService{
+
+
+/* class to demonstrate use of Gmail list labels API */
+public class TokenGenerator {
   /**
    * Application name.
    */
@@ -57,12 +62,21 @@ public class EmailService{
    */
   private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
       throws IOException {
+    // Load application.properties file
+    FileInputStream input = new FileInputStream("src/main/resources/application.properties");
+    Properties properties = new Properties();
+    properties.load(input);
+    //Update the credentials.json file
+    String content = new String(Files.readAllBytes(Paths.get("src/main/resources/credentials.json")));
+    JSONObject credentials = new JSONObject(content);
+    JSONObject installed = credentials.getJSONObject("installed");
+    installed.put("client_id", properties.getProperty("id"));
+    installed.put("client_secret", properties.getProperty("sec"));
     // Load client secrets.
-    InputStream in = EmailService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+    InputStream in = new ByteArrayInputStream(credentials.toString(4).getBytes());//TokenGenerator.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
     if (in == null) {
       throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
     }
-    
     GoogleClientSecrets clientSecrets =
         GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
@@ -78,27 +92,24 @@ public class EmailService{
     return credential;
   }
 
-  public static List<Message> searchEmails(String query) throws IOException, GeneralSecurityException {
-  	Gmail service = initialiseGmailService();
-  	String user = "me";
-  	ListMessagesResponse messageResponse = service.users().messages().list(user).setQ(query).execute();
-  	List<Message> messages = new ArrayList<>();
-  	if(messageResponse.getMessages() != null){
-  		for(Message msg : messageResponse.getMessages()){
-  			Message mailDetails = service.users().messages().get("me", msg.getId()).execute();
-        System.out.println(mailDetails);
-  			messages.add(mailDetails);
-  		}
-  	}
-  	return messages;
-  }
-
-  private static Gmail initialiseGmailService() throws IOException,GeneralSecurityException {
-  	final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+  public static void main(String... args) throws IOException, GeneralSecurityException {
+    // Build a new authorized API client service.
+    final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
     Gmail service = new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
         .setApplicationName(APPLICATION_NAME)
         .build();
-    return service;
-  }
 
+    // Print the labels in the user's account.
+    String user = "me";
+    ListLabelsResponse listResponse = service.users().labels().list(user).execute();
+    List<Label> labels = listResponse.getLabels();
+    if (labels.isEmpty()) {
+      System.out.println("No labels found.");
+    } else {
+      System.out.println("Labels:");
+      for (Label label : labels) {
+        System.out.printf("- %s\n", label.getName());
+      }
+    }
+  }
 }
