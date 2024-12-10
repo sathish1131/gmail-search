@@ -32,17 +32,9 @@ import java.nio.file.Paths;
 
 import java.security.GeneralSecurityException;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Properties;
+import java.util.*;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-
-import org.json.JSONArray;
 import org.json.JSONObject;
-
 
 
 @Service
@@ -108,12 +100,13 @@ public class EmailService{
     return credential;
   }
 
-  public static JSONArray searchEmails(String query) throws IOException, GeneralSecurityException {
+  public static Map<String, Object> searchEmails(String query) throws IOException, GeneralSecurityException {
   	Gmail service = initialiseGmailService();
   	String user = "me";
   	ListMessagesResponse messageResponse = service.users().messages().list(user).setQ(query).execute();
   	List<Message> messages = messageResponse.getMessages();
-    JSONArray mails = new JSONArray();
+    Map<String, Object> map = new HashMap<>();
+    List<Map<String, String>> list = new ArrayList<>();
     if(messages != null){
       for(Message message : messages){
         Message fullMessage = service.users().messages().get(user, message.getId()).setFormat("full").execute();
@@ -133,14 +126,12 @@ public class EmailService{
             }
           }
         }
-        JSONObject mailDetails = new JSONObject();
-        mailDetails.put("id", message.getId());
-        mailDetails.put("subject", subject);
-        mailDetails.put("body", body);
-        mails.put(mailDetails);
+        list.add(Map.of("id", message.getId(), "subject", subject, "body", body));
+        map.put("messages", list);
       }
     }
-    return mails;
+    System.out.println(map);
+    return map;
   }
 
   private static Gmail initialiseGmailService() throws IOException,GeneralSecurityException {

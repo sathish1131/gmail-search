@@ -74,18 +74,18 @@
 			event.preventDefault();
 
 			const alias = searchBox.val().trim();
+			const query = `to:${encodeURIComponent(alias)}`;
 			mailResult.html('<p>Loading...</p>');
 			$.ajax({
-				url: `/gmail/search?alias=${alias}`,
+				url: `/gmail/search?query=${query}`,
 				type: 'GET',
 				dataType: 'JSON',
 				success: function(response){
+					console.log(response);
 					mailResult.html('');
-					console.log(JSON.parse(JSON.stringify(response)));
-					if(response && response.length > 0){
-						
+					if(response.messages && Array.isArray(response.messages)){
 						const ul = $('<ul></ul>');
-						response.forEach(email => {
+						response.messages.forEach(email => {
 							ul.append(`<li>${email.subject}</li>`);
 						});
 						mailResult.append(ul);

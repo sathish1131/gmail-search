@@ -4,10 +4,12 @@ import com.project.gmail_search.service.EmailService;
 import com.google.api.services.gmail.model.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import org.json.JSONArray;
+import java.util.Map;
 
 
 @RestController
@@ -18,8 +20,10 @@ public class EmailController{
 	private EmailService emailService;
 
 	@GetMapping("search")
-	public JSONArray searchEmails(@RequestParam String alias) throws IOException, GeneralSecurityException {
-		return emailService.searchEmails(alias);
+	public ResponseEntity<Map<String, Object>> searchEmails(@RequestParam String query) throws IOException, GeneralSecurityException {
+		System.out.println(query);
+		Map<String, Object> resultMap = emailService.searchEmails(query);
+		return ResponseEntity.ok(resultMap);
 	}
 
 }
