@@ -130,7 +130,6 @@ public class EmailService{
         map.put("messages", list);
       }
     }
-    System.out.println(map);
     return map;
   }
 
